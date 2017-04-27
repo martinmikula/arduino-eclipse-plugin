@@ -45,7 +45,6 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.statushandlers.StatusManager;
@@ -281,7 +280,7 @@ public class Manager {
 		}
 		return libraryIndices;
 	}
-	
+
 	static public LibraryIndex getLibraryIndex(String name) {
 		for (LibraryIndex index : getLibraryIndices()) {
 			if (index.getName().equals(name)) {
@@ -913,13 +912,13 @@ public class Manager {
 		}
 	}
 
-	public static void installAllLatestLibraries(String category) {
+	public static void installAllLatestLibraries(String category, IProgressMonitor monitor) {
 		List<LibraryIndex> libraryIndices1 = getLibraryIndices();
 		for (LibraryIndex libraryIndex : libraryIndices1) {
 			Collection<Library> libraries = libraryIndex.getLatestLibraries(category);
 			for (Library library : libraries) {
 				if (!library.isInstalled()) {
-					library.install(new NullProgressMonitor());
+					library.install(monitor);
 				}
 			}
 		}

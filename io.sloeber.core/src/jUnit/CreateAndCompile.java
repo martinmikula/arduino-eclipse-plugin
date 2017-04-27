@@ -23,6 +23,7 @@ import io.sloeber.core.api.BoardsManager;
 import io.sloeber.core.api.CodeDescriptor;
 import io.sloeber.core.api.CompileOptions;
 import io.sloeber.core.api.ConfigurationDescriptor;
+import shared.ConsoleProgressMonitor;
 
 @SuppressWarnings("nls")
 @RunWith(Parameterized.class)
@@ -126,7 +127,8 @@ public class CreateAndCompile {
 				"https://zevero.github.io/avr_boot/package_zevero_avr_boot_index.json",
 				"https://udooboard.github.io/arduino-board-package/package_udoo_index.json" };
 		BoardsManager.addPackageURLs(new HashSet<>(Arrays.asList(packageUrlsToAdd)), true);
-		BoardsManager.installAllLatestPlatforms();
+		BoardsManager
+				.installAllLatestPlatforms(ConsoleProgressMonitor.getInstanceAndStart("InstallAllLatestPlatforms"));
 		BoardsManager.referenceLocallInstallation(Shared.getTeensyPlatform());
 		BoardsManager.onlyKeepLatestPlatforms();
 		Shared.waitForAllJobsToFinish();

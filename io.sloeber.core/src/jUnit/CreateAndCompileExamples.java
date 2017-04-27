@@ -28,6 +28,7 @@ import io.sloeber.core.api.CodeDescriptor;
 import io.sloeber.core.api.CompileOptions;
 import io.sloeber.core.api.ConfigurationDescriptor;
 import io.sloeber.core.api.LibraryManager;
+import shared.ConsoleProgressMonitor;
 
 @SuppressWarnings("nls")
 @RunWith(Parameterized.class)
@@ -54,6 +55,8 @@ public class CreateAndCompileExamples {
 				myOptions.put(values[0], values[1]);
 			}
 		}
+
+		// Test for leonardo board
 		BoardDescriptor leonardoBoardid = BoardsManager.getBoardDescriptor("package_index.json", "arduino",
 				"Arduino AVR Boards", "leonardo", myOptions);
 		if (leonardoBoardid == null) {
@@ -61,6 +64,8 @@ public class CreateAndCompileExamples {
 			return null;
 		}
 		leonardoBoardid.setUploadPort("none");
+
+		// Test for uno board
 		BoardDescriptor unoBoardid = BoardsManager.getBoardDescriptor("package_index.json", "arduino",
 				"Arduino AVR Boards", "uno", myOptions);
 		if (unoBoardid == null) {
@@ -68,6 +73,8 @@ public class CreateAndCompileExamples {
 			return null;
 		}
 		unoBoardid.setUploadPort("none");
+
+		// Test for esplora board
 		BoardDescriptor EsploraBoardid = BoardsManager.getBoardDescriptor("package_index.json", "arduino",
 				"Arduino AVR Boards", "esplora", myOptions);
 		if (EsploraBoardid == null) {
@@ -76,6 +83,7 @@ public class CreateAndCompileExamples {
 		}
 		EsploraBoardid.setUploadPort("none");
 
+		// Get list of all examples
 		LinkedList<Object[]> examples = new LinkedList<>();
 		TreeMap<String, IPath> exampleFolders = BoardsManager.getAllExamples(null);
 		for (Map.Entry<String, IPath> curexample : exampleFolders.entrySet()) {
@@ -85,17 +93,14 @@ public class CreateAndCompileExamples {
 			CodeDescriptor codeDescriptor = CodeDescriptor.createExample(false, paths);
 			if (isExampleOkForLeonardo(curexample.getKey())) {
 				Object[] theData = new Object[] { "leonardo :" + curexample.getKey(), leonardoBoardid, codeDescriptor };
-
 				examples.add(theData);
 			}
 			if (isExampleOkForUno(curexample.getKey())) {
 				Object[] theData = new Object[] { "Uno :" + curexample.getKey(), unoBoardid, codeDescriptor };
-
 				examples.add(theData);
 			}
 			if (isExampleOkForEsplora(curexample.getKey())) {
 				Object[] theData = new Object[] { "Esplora :" + curexample.getKey(), EsploraBoardid, codeDescriptor };
-
 				examples.add(theData);
 			}
 		}
@@ -161,15 +166,15 @@ public class CreateAndCompileExamples {
 		String[] packageUrlsToAdd = { "http://arduino.esp8266.com/stable/package_esp8266com_index.json",
 				"http://www.lmt.sk/arduino/library_mikula_index.json" };
 		BoardsManager.addPackageURLs(new HashSet<>(Arrays.asList(packageUrlsToAdd)), true);
-		BoardsManager.installAllLatestPlatforms();
-		LibraryManager.installAllLatestLibraries();
-
+		BoardsManager
+				.installAllLatestPlatforms(ConsoleProgressMonitor.getInstanceAndStart("InstallAllLatestPlatforms"));
+		LibraryManager
+				.installAllLatestLibraries(ConsoleProgressMonitor.getInstanceAndStart("InstallAllLatestLibraries"));
 	}
 
 	@Test
 	public void testExamples() {
 		BuildAndVerify(this.myBoardid, this.myCodeDescriptor);
-
 	}
 
 	public static void BuildAndVerify(BoardDescriptor boardid, CodeDescriptor codeDescriptor) {

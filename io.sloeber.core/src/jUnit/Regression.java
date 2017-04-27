@@ -22,6 +22,7 @@ import io.sloeber.core.api.BoardsManager;
 import io.sloeber.core.api.CodeDescriptor;
 import io.sloeber.core.api.CompileOptions;
 import io.sloeber.core.api.ConfigurationDescriptor;
+import shared.ConsoleProgressMonitor;
 
 @SuppressWarnings("nls")
 public class Regression {
@@ -35,7 +36,8 @@ public class Regression {
 	public static void WaitForInstallerToFinish() {
 		Shared.waitForAllJobsToFinish();
 		installAdditionalBoards();
-		BoardsManager.installAllLatestPlatforms();
+		BoardsManager
+				.installAllLatestPlatforms(ConsoleProgressMonitor.getInstanceAndStart("InstallAllLatestPlatforms"));
 	}
 
 	public static void installAdditionalBoards() {
@@ -71,14 +73,14 @@ public class Regression {
 	@Test
 	public void issue555() {
 		Map<String, String> unoOptions = new HashMap<>();
-		BoardDescriptor unoBoardid = BoardsManager.getBoardDescriptor("package_index.json", "arduino", "Arduino AVR Boards",
-				"uno", unoOptions);
+		BoardDescriptor unoBoardid = BoardsManager.getBoardDescriptor("package_index.json", "arduino",
+				"Arduino AVR Boards", "uno", unoOptions);
 		Map<String, String> teensyOptions = new HashMap<>();
 		teensyOptions.put("usb", "serial");
 		teensyOptions.put("speed", "96");
 		teensyOptions.put("keys", "en-us");
-		BoardDescriptor teensyBoardid = BoardsManager.getBoardDescriptor("local", Shared.getTeensyBoard_txt(), "", "teensy31",
-				teensyOptions);
+		BoardDescriptor teensyBoardid = BoardsManager.getBoardDescriptor("local", Shared.getTeensyBoard_txt(), "",
+				"teensy31", teensyOptions);
 		IProject theTestProject = null;
 		CodeDescriptor codeDescriptor = CodeDescriptor.createDefaultIno();
 		String projectName = "issue555";
@@ -122,8 +124,8 @@ public class Regression {
 	@Test
 	public void issue687() {
 		Map<String, String> unoOptions = new HashMap<>();
-		BoardDescriptor unoBoardid = BoardsManager.getBoardDescriptor("package_index.json", "arduino", "Arduino AVR Boards",
-				"uno", unoOptions);
+		BoardDescriptor unoBoardid = BoardsManager.getBoardDescriptor("package_index.json", "arduino",
+				"Arduino AVR Boards", "uno", unoOptions);
 
 		IProject theTestProject = null;
 		String projectName = "issue687";
@@ -139,10 +141,8 @@ public class Regression {
 				fail("Failed to compile the project:" + projectName + " issue687 is not fixed");
 			}
 		} catch (Exception e) {
-			fail("Failed to create the project:" + projectName + " issue687 is not tested");
-			return;
+			fail("Failed to create the project:" + projectName + " issue687 is not tested" + e.getMessage());
 		}
-
 	}
 
 	/**
@@ -154,8 +154,8 @@ public class Regression {
 	@Test
 	public void are_jantjes_options_taken_into_account() {
 		Map<String, String> unoOptions = new HashMap<>();
-		BoardDescriptor unoBoardid = BoardsManager.getBoardDescriptor("package_index.json", "arduino", "Arduino AVR Boards",
-				"uno", unoOptions);
+		BoardDescriptor unoBoardid = BoardsManager.getBoardDescriptor("package_index.json", "arduino",
+				"Arduino AVR Boards", "uno", unoOptions);
 
 		IProject theTestProject = null;
 		String projectName = "are_defines_found";
@@ -195,8 +195,8 @@ public class Regression {
 	@Test
 	public void are_defines_before_includes_taken_into_account() {
 		Map<String, String> unoOptions = new HashMap<>();
-		BoardDescriptor unoBoardid = BoardsManager.getBoardDescriptor("package_index.json", "arduino", "Arduino AVR Boards",
-				"uno", unoOptions);
+		BoardDescriptor unoBoardid = BoardsManager.getBoardDescriptor("package_index.json", "arduino",
+				"Arduino AVR Boards", "uno", unoOptions);
 
 		IProject theTestProject = null;
 		String projectName = "externc";
@@ -230,8 +230,8 @@ public class Regression {
 	@Test
 	public void is_extern_C_taken_into_account() {
 		Map<String, String> unoOptions = new HashMap<>();
-		BoardDescriptor unoBoardid = BoardsManager.getBoardDescriptor("package_index.json", "arduino", "Arduino AVR Boards",
-				"uno", unoOptions);
+		BoardDescriptor unoBoardid = BoardsManager.getBoardDescriptor("package_index.json", "arduino",
+				"Arduino AVR Boards", "uno", unoOptions);
 
 		IProject theTestProject = null;
 		String projectName = "defines_and_includes";

@@ -219,14 +219,14 @@ public class LibraryManager {
 		return InstancePreferences.getPrivateLibraryPathsString();
 	}
 
-	public static void installAllLatestLibraries(String category) {
-		Manager.installAllLatestLibraries(category);
+	public static void installAllLatestLibraries(String category, IProgressMonitor monitor) {
+		Manager.installAllLatestLibraries(category, monitor);
 	}
 
-	public static void installAllLatestLibraries() {
+	public static void installAllLatestLibraries(IProgressMonitor monitor) {
 		Set<String> allcategories = getAllCategories();
-		for (String categorieName : allcategories) {
-			Manager.installAllLatestLibraries(categorieName);
+		for (String categoryName : allcategories) {
+			installAllLatestLibraries(categoryName, monitor);
 		}
 
 	}
