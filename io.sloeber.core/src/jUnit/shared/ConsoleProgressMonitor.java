@@ -1,4 +1,4 @@
-package shared;
+package jUnit.shared;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
