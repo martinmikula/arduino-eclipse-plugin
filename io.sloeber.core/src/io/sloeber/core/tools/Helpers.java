@@ -706,7 +706,7 @@ public class Helpers extends Common {
 			addPlatformFileTools(curPlatform, contribEnv, confDesc);
 			if (curPlatform.isInstalled() && "avr".equalsIgnoreCase(curPlatform.getArchitecture())
 					&& "arduino".equalsIgnoreCase(curPlatform.getPackage().getMaintainer())) {
-				if (Manager.compareVersions(curPlatform.getVersion(), curversion) > 0) {
+				if (Version.compare(curPlatform.getVersion(), curversion) > 0) {
 					curversion = curPlatform.getVersion();
 					platform = curPlatform;
 				}
@@ -718,7 +718,7 @@ public class Helpers extends Common {
 			addPlatformFileTools(platform, contribEnv, confDesc);
 		}
 
-		// by adding the referencenced platform after the real platform
+		// add the referenced platform before the real platform
 		platform = Manager.getPlatform(new Path(referenceCoredPlatformFileName).append(PLATFORM_FILE_NAME).toFile());
 		if (platform != null) {
 			addPlatformFileTools(platform, contribEnv, confDesc);

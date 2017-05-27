@@ -11,9 +11,10 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import io.sloeber.core.api.Defaults;
+import io.sloeber.core.tools.Version;
 
 public class LibraryIndex {
-	private String indexName;
+	private String jsonFileName;
 	private List<Library> libraries;
 
 	// category name to library name
@@ -40,7 +41,7 @@ public class LibraryIndex {
 
 			Library current = this.latestLibs.get(name);
 			if (current != null) {
-				if (Manager.compareVersions(library.getVersion(), current.getVersion()) > 0) {
+				if (Version.compare(library.getVersion(), current.getVersion()) > 0) {
 					this.latestLibs.put(name, library);
 				}
 			} else {
@@ -88,6 +89,10 @@ public class LibraryIndex {
 		return libs;
 	}
 
+	public Map<String, Library> getLatestLibraries() {
+		return this.latestLibs;
+	}
+
 	public Collection<Library> getLibraries(String category) {
 		Set<String> categoryLibs = this.categories.get(category);
 		if (categoryLibs == null) {
@@ -106,14 +111,14 @@ public class LibraryIndex {
 	public void setJsonFile(File packageFile) {
 		String fileName = packageFile.getName().toLowerCase();
 		if (fileName.matches("(?i)library_index.json")) { //$NON-NLS-1$
-			this.indexName = Defaults.DEFAULT;
+			this.jsonFileName = Defaults.DEFAULT;
 		} else {
-			this.indexName = fileName.replaceAll("(?i)" + Pattern.quote("library_"), "") //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			this.jsonFileName = fileName.replaceAll("(?i)" + Pattern.quote("library_"), "") //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 					.replaceAll("(?i)" + Pattern.quote("_index.json"), ""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		}
 	}
 
 	public String getName() {
-		return this.indexName;
+		return this.jsonFileName;
 	}
 }

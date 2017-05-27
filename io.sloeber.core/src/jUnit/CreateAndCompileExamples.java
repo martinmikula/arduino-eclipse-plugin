@@ -91,17 +91,25 @@ public class CreateAndCompileExamples {
 
 			paths.add(new Path(curexample.getValue().toString()));
 			CodeDescriptor codeDescriptor = CodeDescriptor.createExample(false, paths);
-			if (isExampleOkForLeonardo(curexample.getKey())) {
-				Object[] theData = new Object[] { "leonardo :" + curexample.getKey(), leonardoBoardid, codeDescriptor };
-				examples.add(theData);
-			}
+
+			// with the current amount of examples only do one
 			if (isExampleOkForUno(curexample.getKey())) {
 				Object[] theData = new Object[] { "Uno :" + curexample.getKey(), unoBoardid, codeDescriptor };
 				examples.add(theData);
-			}
-			if (isExampleOkForEsplora(curexample.getKey())) {
-				Object[] theData = new Object[] { "Esplora :" + curexample.getKey(), EsploraBoardid, codeDescriptor };
-				examples.add(theData);
+			} else {
+				if (isExampleOkForLeonardo(curexample.getKey())) {
+					Object[] theData = new Object[] { "leonardo :" + curexample.getKey(), leonardoBoardid,
+							codeDescriptor };
+
+					examples.add(theData);
+				} else {
+					if (isExampleOkForEsplora(curexample.getKey())) {
+						Object[] theData = new Object[] { "Esplora :" + curexample.getKey(), EsploraBoardid,
+								codeDescriptor };
+
+						examples.add(theData);
+					}
+				}
 			}
 		}
 
@@ -203,7 +211,11 @@ public class CreateAndCompileExamples {
 				if (Shared.hasBuildErrors(theTestProject)) {
 					// give up
 					fail("Failed to compile the project:" + projectName + " build errors");
+				} else {
+					theTestProject.delete(true, null);
 				}
+			} else {
+				theTestProject.delete(true, null);
 			}
 		} catch (CoreException e) {
 			e.printStackTrace();

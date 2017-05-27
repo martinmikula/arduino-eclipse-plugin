@@ -148,6 +148,56 @@ public class Activator extends AbstractUIPlugin {
 		IndexerListener myindexerListener = new IndexerListener();
 		CCorePlugin.getIndexManager().addIndexChangeListener(myindexerListener);
 		CCorePlugin.getIndexManager().addIndexerStateListener(myindexerListener);
+
+		/*
+		 * IWorkbench wb = PlatformUI.getWorkbench(); wb.addWindowListener(new
+		 * IWindowListener() {
+		 * 
+		 * @Override public void windowOpened(IWorkbenchWindow arg0) {
+		 * arg0.getActivePage().getActiveEditor();
+		 * arg0.getActivePage().addPartListener(new IPartListener() {
+		 * 
+		 * @Override public void partOpened(IWorkbenchPart arg0) {
+		 * arg0.getSite().getShell(). }
+		 * 
+		 * @Override public void partDeactivated(IWorkbenchPart arg0) { // TODO
+		 * Auto-generated method stub
+		 * 
+		 * }
+		 * 
+		 * @Override public void partClosed(IWorkbenchPart arg0) { // TODO
+		 * Auto-generated method stub
+		 * 
+		 * }
+		 * 
+		 * @Override public void partBroughtToTop(IWorkbenchPart arg0) { // TODO
+		 * Auto-generated method stub
+		 * 
+		 * }
+		 * 
+		 * @Override public void partActivated(IWorkbenchPart arg0) { // TODO
+		 * Auto-generated method stub
+		 * 
+		 * } }); // TODO Auto-generated method stub
+		 * 
+		 * }
+		 * 
+		 * @Override public void windowDeactivated(IWorkbenchWindow arg0) { //
+		 * TODO Auto-generated method stub
+		 * 
+		 * }
+		 * 
+		 * @Override public void windowClosed(IWorkbenchWindow arg0) { // TODO
+		 * Auto-generated method stub
+		 * 
+		 * }
+		 * 
+		 * @Override public void windowActivated(IWorkbenchWindow arg0) { //
+		 * TODO Auto-generated method stub
+		 * 
+		 * } });
+		 */
+
 		CoreModel singCoreModel = CoreModel.getDefault();
 		singCoreModel.addCProjectDescriptionListener(new ConfigurationChangeListener(),
 				CProjectDescriptionEvent.ABOUT_TO_APPLY);

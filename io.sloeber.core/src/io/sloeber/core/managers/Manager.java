@@ -28,7 +28,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -53,6 +52,7 @@ import com.google.gson.Gson;
 
 import io.sloeber.core.Activator;
 import io.sloeber.core.api.Defaults;
+import io.sloeber.core.api.LibraryManager;
 import io.sloeber.core.common.Common;
 import io.sloeber.core.common.ConfigurationPreferences;
 import io.sloeber.core.tools.MyMultiStatus;
@@ -60,7 +60,7 @@ import io.sloeber.core.tools.MyMultiStatus;
 public class Manager {
 
 	static private List<PackageIndex> packageIndices;
-	static private List<LibraryIndex> libraryIndices;
+
 	private static boolean myIsReady = false;
 
 	public static boolean isReady() {
@@ -89,10 +89,10 @@ public class Manager {
 		loadJsons(ConfigurationPreferences.getUpdateJasonFilesFlag());
 		List<Board> allBoards = getInstalledBoards();
 		if (allBoards.isEmpty()) { // If boards are installed do nothing
-			InstallDefaultLibraries(monitor);
+			LibraryManager.InstallDefaultLibraries(monitor);
 			MyMultiStatus mstatus = new MyMultiStatus("Failed to configer Sloeber"); //$NON-NLS-1$
 
-			// Downnload sample programs
+			// Download sample programs
 			mstatus.addErrors(downloadAndInstall(Defaults.EXAMPLES_URL, Defaults.EXAMPLE_PACKAGE,
 					Paths.get(ConfigurationPreferences.getInstallationPathExamples().toString()), false, monitor));
 
@@ -120,19 +120,6 @@ public class Manager {
 		}
 		myIsReady = true;
 
-	}
-
-	private static void InstallDefaultLibraries(IProgressMonitor monitor) {
-		LibraryIndex libindex = getLibraryIndex(Defaults.DEFAULT);
-		if (libindex == null)
-			return;
-
-		for (String library : Defaults.INSTALLED_LIBRARIES) {
-			Library toInstalLib = libindex.getLatestLibrary(library);
-			if (toInstalLib != null) {
-				toInstalLib.install(monitor);
-			}
-		}
 	}
 
 	/**
@@ -178,7 +165,7 @@ public class Manager {
 
 	static private void loadJsons(boolean forceDownload) {
 		packageIndices = new ArrayList<>();
-		libraryIndices = new ArrayList<>();
+		LibraryManager.flushIndices();
 
 		String[] jsonUrls = ConfigurationPreferences.getJsonURLList();
 		for (String jsonUrl : jsonUrls) {
@@ -210,6 +197,18 @@ public class Manager {
 	}
 
 	/**
+	 * convert a local file name to a baeyens it alternative download name There
+	 * is no check wether the file exists only a conversion
+	 *
+	 * @param url
+	 *            url of the file we want a local
+	 * @return the file that represents the file on Baeyens.it
+	 */
+	private static String getBaeyensItAlternativeDownload(String localFileName) {
+		return "http://eclipse.baeyens.it/download/" + localFileName; //$NON-NLS-1$
+	}
+
+	/**
 	 * This method takes a json boards file url and downloads it and parses it
 	 * for usage in the boards manager
 	 *
@@ -226,17 +225,22 @@ public class Manager {
 		}
 		if (!jsonFile.exists() || forceDownload) {
 			jsonFile.getParentFile().mkdirs();
+			String alternativeDownloadurl = getBaeyensItAlternativeDownload(jsonFile.getName());
 			try {
-				myCopy(new URL(url.trim()), jsonFile);
-			} catch (IOException e) {
-				Common.log(new Status(IStatus.ERROR, Activator.getId(), "Unable to download " + url, e)); //$NON-NLS-1$
+				myCopy(new URL(alternativeDownloadurl.trim()), jsonFile);
+			} catch (IOException e0) {
+				try {
+					myCopy(new URL(url.trim()), jsonFile);
+				} catch (IOException e) {
+					Common.log(new Status(IStatus.ERROR, Activator.getId(), "Unable to download " + url, e)); //$NON-NLS-1$
+				}
 			}
 		}
 		if (jsonFile.exists()) {
 			if (jsonFile.getName().toLowerCase().startsWith("package_")) { //$NON-NLS-1$
 				loadPackage(jsonFile);
 			} else if (jsonFile.getName().toLowerCase().startsWith("library_")) { //$NON-NLS-1$
-				loadLibrary(jsonFile);
+				LibraryManager.loadJson(jsonFile);
 			}
 		}
 	}
@@ -248,21 +252,8 @@ public class Manager {
 			index.setJsonFile(jsonFile);
 			packageIndices.add(index);
 		} catch (Exception e) {
-			Common.log(
-					new Status(IStatus.ERROR, Activator.getId(), "Unable to parse " + jsonFile.getAbsolutePath(), e)); //$NON-NLS-1$
-			jsonFile.delete();// Delete the file so it stops damaging
-		}
-	}
-
-	static private void loadLibrary(File jsonFile) {
-		try (Reader reader = new FileReader(jsonFile)) {
-			LibraryIndex index = new Gson().fromJson(reader, LibraryIndex.class);
-			index.resolve();
-			index.setJsonFile(jsonFile);
-			libraryIndices.add(index);
-		} catch (Exception e) {
-			Common.log(
-					new Status(IStatus.ERROR, Activator.getId(), "Unable to parse " + jsonFile.getAbsolutePath(), e)); //$NON-NLS-1$
+			Common.log(new Status(IStatus.ERROR, Activator.getId(),
+					Messages.Manager_Failed_to_parse.replace("${FILE}", jsonFile.getAbsolutePath()), e)); //$NON-NLS-1$
 			jsonFile.delete();// Delete the file so it stops damaging
 		}
 	}
@@ -272,22 +263,6 @@ public class Manager {
 			loadJsons(false);
 		}
 		return packageIndices;
-	}
-
-	static public List<LibraryIndex> getLibraryIndices() {
-		if (libraryIndices == null) {
-			loadJsons(false);
-		}
-		return libraryIndices;
-	}
-
-	static public LibraryIndex getLibraryIndex(String name) {
-		for (LibraryIndex index : getLibraryIndices()) {
-			if (index.getName().equals(name)) {
-				return index;
-			}
-		}
-		return null;
 	}
 
 	static public Board getBoard(String boardName, String platformName, String packageName) {
@@ -332,7 +307,7 @@ public class Manager {
 
 		for (PackageIndex index : getPackageIndices()) {
 			for (Package pkg : index.getPackages()) {
-				for (ArduinoPlatform curPlatform : pkg.getInstalledPlatforms()) {
+				for (ArduinoPlatform curPlatform : pkg.getLatestInstalledPlatforms()) {
 					if (architecture.equalsIgnoreCase(curPlatform.getArchitecture())
 							&& (vendor.equalsIgnoreCase(pkg.getName()))) {
 						return new org.eclipse.core.runtime.Path(curPlatform.getInstallPath().toString());
@@ -362,6 +337,18 @@ public class Manager {
 		return null;
 	}
 
+	static public List<ArduinoPlatform> getLatestInstalledPlatforms() {
+		List<ArduinoPlatform> platforms = new ArrayList<>();
+		for (PackageIndex index : getPackageIndices()) {
+			for (Package pkg : index.getPackages()) {
+
+				platforms.addAll(pkg.getLatestInstalledPlatforms());
+
+			}
+		}
+		return platforms;
+	}
+
 	static public List<ArduinoPlatform> getInstalledPlatforms() {
 		List<ArduinoPlatform> platforms = new ArrayList<>();
 		for (PackageIndex index : getPackageIndices()) {
@@ -378,7 +365,7 @@ public class Manager {
 		List<Board> boards = new ArrayList<>();
 		for (PackageIndex index : getPackageIndices()) {
 			for (Package pkg : index.getPackages()) {
-				for (ArduinoPlatform platform : pkg.getInstalledPlatforms()) {
+				for (ArduinoPlatform platform : pkg.getLatestInstalledPlatforms()) {
 					boards.addAll(platform.getBoards());
 				}
 			}
@@ -745,60 +732,6 @@ public class Manager {
 	}
 
 	/**
-	 * compares 2 strings as if they are version numbers if version1<version2
-	 * returns -1 if version1==version2(also if both are null) returns 0 else
-	 * return 1 This method caters for the null case
-	 *
-	 * @param version1
-	 * @param version2
-	 * @return
-	 */
-	public static int compareVersions(String version1, String version2) {
-		if (version1 == null) {
-			return version2 == null ? 0 : -1;
-		}
-
-		if (version2 == null) {
-			return 1;
-		}
-
-		String[] v1 = version1.split("\\."); //$NON-NLS-1$
-		String[] v2 = version2.split("\\."); //$NON-NLS-1$
-		for (int i = 0; i < Math.max(v1.length, v2.length); ++i) {
-			if (v1.length <= i) {
-				return v2.length < i ? 0 : -1;
-			}
-
-			if (v2.length <= i) {
-				return 1;
-			}
-
-			try {
-				int vi1 = Integer.parseInt(v1[i]);
-				int vi2 = Integer.parseInt(v2[i]);
-				if (vi1 < vi2) {
-					return -1;
-				}
-
-				if (vi1 > vi2) {
-					return 1;
-				}
-			} catch (@SuppressWarnings("unused") NumberFormatException e) {
-				// not numbers, do string compares
-				int c = v1[i].compareTo(v2[i]);
-				if (c < 0) {
-					return -1;
-				}
-				if (c > 0) {
-					return 1;
-				}
-			}
-		}
-
-		return 0;
-	}
-
-	/**
 	 * This method removes the json files from disk and removes memory
 	 * references to these files or their content
 	 *
@@ -911,17 +844,4 @@ public class Manager {
 			curPackage.onlyKeepLatestPlatforms();
 		}
 	}
-
-	public static void installAllLatestLibraries(String category, IProgressMonitor monitor) {
-		List<LibraryIndex> libraryIndices1 = getLibraryIndices();
-		for (LibraryIndex libraryIndex : libraryIndices1) {
-			Collection<Library> libraries = libraryIndex.getLatestLibraries(category);
-			for (Library library : libraries) {
-				if (!library.isInstalled()) {
-					library.install(monitor);
-				}
-			}
-		}
-	}
-
 }
