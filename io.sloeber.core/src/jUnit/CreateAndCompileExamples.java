@@ -28,7 +28,7 @@ import io.sloeber.core.api.CodeDescriptor;
 import io.sloeber.core.api.CompileOptions;
 import io.sloeber.core.api.ConfigurationDescriptor;
 import io.sloeber.core.api.LibraryManager;
-import shared.ConsoleProgressMonitor;
+import jUnit.shared.ConsoleProgressMonitor;
 
 @SuppressWarnings("nls")
 @RunWith(Parameterized.class)

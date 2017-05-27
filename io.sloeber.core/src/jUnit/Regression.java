@@ -22,7 +22,7 @@ import io.sloeber.core.api.BoardsManager;
 import io.sloeber.core.api.CodeDescriptor;
 import io.sloeber.core.api.CompileOptions;
 import io.sloeber.core.api.ConfigurationDescriptor;
-import shared.ConsoleProgressMonitor;
+import jUnit.shared.ConsoleProgressMonitor;
 
 @SuppressWarnings("nls")
 public class Regression {
